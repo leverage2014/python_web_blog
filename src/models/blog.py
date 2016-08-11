@@ -6,20 +6,14 @@ from src.models.post import Post
 
 
 class Blog(object):
-    def __init__(self, author, title, description, _id=None):
+    def __init__(self, author, title, description, author_id, _id=None):
         self.author = author
         self.title = title
         self.description = description
+        self.author_id = author_id
         self._id = uuid.uuid4().hex if _id is None else _id
 
-    def new_post(self):
-        title = input("Enter post title: ")
-        content = input("Enter post content: ")
-        date = input("Enter post date, or leave blank for today (in format DDMMYYYY): ")
-        if date == "":
-            date = datetime.datetime.utcnow()
-        else:
-            date = datetime.datetime.strptime(date, "%d%m%Y")
+    def new_post(self, title, content, date=datetime.datetime.utcnow()):
         post = Post(blog_id=self._id,
                     title=title,
                     content=content,
@@ -37,6 +31,7 @@ class Blog(object):
     def json(self):
         return {
             'author': self.author,
+            'author_id': self.author_id,
             'title': self.title,
             'description': self.description,
             '_id': self._id
@@ -47,3 +42,9 @@ class Blog(object):
         blog_data = Database.find_one(collection='blogs',
                                       query={'_id': id})
         return cls(**blog_data)
+
+    @classmethod
+    def find_by_author_id(cls, author_id):
+        blogs = Database.find(collection='blogs',
+                              query={'author_id', author_id})
+        return [cls(**blog) for blog in blogs]
